@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+	<head>
+	
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		
+		<link rel="icon" sizes="192x192" href="icons/icon.png" />
+		<link rel="apple-touch-icon" href="icons/icon.png" />
+		<link rel="shortcut icon" href="icons/weeicon.png" type="image/x-icon" />
+	
+	
+		<script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
+		<script src="https://www.gstatic.com/firebasejs/5.4.2/firebase.js"></script>
+		
+		<script type='text/javascript' src='scripts/api_keys.js'></script>
+
+	
+		<title>LILY CONTROL</title>
+		<link href="styles/html5reset.css" rel="stylesheet"/>
+		<link href="styles/style.css" rel="stylesheet"/>
+	</head>
+
+	<body>
+		<h1>LILY V2.3</h1>
+	
+		<p id="test11">Welcome to LILY control.</p>
+		<p>LILY : The Little Intelligent Lollipop Yunicorn</p>
+		
+		<p id="onlineStatus" style="font-weight: bold;"> IS LILY CURRENTLY ACTIVE? : </p> 
+		
+		
+					<table style="width:50%" border="0">
+						<tr>
+							<td><input id="forBut" type="button" value="Forwards" onclick="moveForwards();" /></td>
+							<td><input id="rigBut" type="button" value="Right" onclick="rightTurn();" /></td>
+						</tr>
+						<tr>
+							<td><input id="bacBut" type="button" value="Backwards" onclick="moveBackwards();" /></td>
+							<td><input id="lefBut" type="button" value="Left" onclick="leftTurn();" /></td>							
+						</tr>
+						<tr style="background-color:#000000">
+							<td><input class="form1" id="turnInput1" type="number" value="0" max="360" min="0"></td>
+							<td><input class="form1" type="button" value="Submit" onclick="valSubmit();" /></td>
+						</tr>
+						<tr>
+							
+						</tr>
+						<tr>
+							<td><input id="resetDatabase" type="button" value="Reset Database" onclick="resetDatabase();" /></td>
+						</tr>
+					</table>
+				
+					
+				
+				
+					<!-- 
+						rPleicjySdI - Stand by
+						I9z0LvoFqHg - Happy Altspace
+						
+						LIVESTREAM LINK WILL NEED CHANGED WHEN OFFLINE / RESTARTED
+						CHANGE IT ON FIREBASE ! :)
+					--->
+					
+
+				<iframe id="vid" width="560" height="315" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
+				
+				
+			
+		
+		
+	</body>
+		
+</html>
+
+<script>
+
+	var config = {
+		apiKey: api_keys.FIREBASE_KEY,
+		authDomain: "crogobot.firebaseapp.com",
+		databaseURL: "https://crogobot.firebaseio.com",
+		projectId: "crogobot",
+		storageBucket: "",
+		messagingSenderId: "345603303322"
+	};
+	firebase.initializeApp(config);
+
+	const DB_REF = new Firebase("https://crogobot.firebaseio.com");
+
+	var offline = false;
+	const DATA_TIMEOUT = 2000;
+	readFirebase();
+	checkOnlineStatus();
+	readListCommands();
+	
+	function moveForwards(){
+		
+		//DB_REF.update({cont: "up"});
+		databasePush("up");
+		//possible remove this function \/ \/
+		setTimeout(function test(){
+		
+			DB_REF.update({cont: "stop"});
+		},DATA_TIMEOUT);
+	}
+	
+	function moveBackwards(){
+
+		databasePush("down");
+		setTimeout(function test(){
+
+			DB_REF.update({cont: "stop"});
+		},DATA_TIMEOUT);
+	}
+	
+	function rightTurn(){
+		
+		databasePush("right");
+		setTimeout(function test(){
+			
+			DB_REF.update({cont: "stop"});
+		},DATA_TIMEOUT);
+	}
+	
+	function leftTurn(){
+		
+		databasePush("left");
+		setTimeout(function test(){
+			
+			DB_REF.update({cont: "stop"});
+		},DATA_TIMEOUT);
+	}
+	
+	function readFirebase(){
+		console.log("Checking current movement...");
+		DB_REF.child("cont").on("value", function(snapshot){
+			var st = snapshot.val(); 
+		});
+	}
+	
+	function resetDatabase(){
+		DB_REF.child("movement").set(["empty"]);
+	}
+
+	var bufferedMovements = [];
+	function readListCommands() {
+	    DB_REF.child("movement").on("value", function (snapshot) {
+	        //console.log(snapshot.val());
+	        var st = snapshot.val();
+			
+			bufferedMovements = st;
+	        
+	    });
+	}
+	
+	function getVideo(){
+		console.log("Getting video...");
+		DB_REF.child("vidSrc").on("value", function(snapshot){
+			var st = snapshot.val(); 
+			document.getElementById("vid").src = "https://www.youtube.com/embed/" + st;
+		});
+	}
+	
+	//Easier to type this than DB_Ref. blah blah
+	function databasePush(x){
+		//DB_REF.child("movement").push(x);
+	
+		
+		bufferedMovements.push(x);
+		console.log("Current buffer : " + bufferedMovements);
+		DB_REF.child("movement").set(bufferedMovements);
+	};
+	
+	function checkOnlineStatus(){
+		console.log("Checking online status...");
+		DB_REF.child("online").on("value", function(snapshot){
+			var st = snapshot.val(); 
+			document.getElementById("onlineStatus").innerHTML = "IS LILY CURRENTLY ACTIVE? : " + st;
+			if (st == "No"){
+				offline = true;
+				document.getElementById("vid").src = "https://www.youtube.com/embed/rPleicjySdI";
+			}else{
+				readFirebase();
+				getVideo();
+			}
+			enableButtons(st);
+		});
+	}
+	
+	//Arbitrary 'i' chosen here
+	function enableButtons(i){
+		console.log(i);
+		if (i == 'No'){
+			document.getElementById("forBut").disabled = true;
+			document.getElementById("bacBut").disabled = true;
+			document.getElementById("rigBut").disabled = true;
+			document.getElementById("lefBut").disabled = true;
+		} else {
+			document.getElementById("forBut").disabled = false;
+			document.getElementById("bacBut").disabled = false;
+			document.getElementById("rigBut").disabled = false;
+			document.getElementById("lefBut").disabled = false;
+		}
+	}
+	
+	function doFunction(){}
+
+	function valSubmit(){
+	
+		var input = parseInt(document.getElementById("turnInput1").value, 10);
+		
+		console.log("Submitted : " + input);
+		
+	
+	}
+	
+	
+</script>

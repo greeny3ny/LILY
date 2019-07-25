@@ -1,0 +1,38 @@
+body{
+	background-color: #ccfbff;
+}
+
+p {
+	color:blue;
+	font-size: 2vh;
+}
+
+h1{
+	color:red;
+}
+
+input{
+	color:black;
+	background-color:#97bcfc;
+	border:0;
+	margin:1px;
+	width:48vw;
+	height: 13vh;
+	padding:10px;
+	display: inline-block;
+
+	font-size: 6vh;
+	
+	font-weight: 700;
+	
+	-webkit-border-radius:0px;
+	-webkit-appearance: none;
+	
+}
+
+.form1{
+	
+	background-color:#15d3d6;
+	padding:0px;
+}
+
