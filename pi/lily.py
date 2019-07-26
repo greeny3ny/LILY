@@ -1,20 +1,12 @@
 from firebase import firebase
 import time
 import RPi.GPIO as GPIO
-import threading
 
 """
 TODO:
 POSSIBLY REPLACE OLD MOTORS WITH NEW MOTORS
 """
-
-#motorPin = 11
-#forwardPin = 40
-#backPin = 13
-#rightPin = 15
-#leftPin = 19
-
-mtrBfor = 7 #19
+mtrBfor = 5 #19        #orig 7, changing so step_mot works
 mtrBbac = 8 #21
 
 mtrAfor = 9 #24
@@ -23,9 +15,23 @@ mtrAbac = 10 #26
 triggerPin = 17
 echoPin = 18
 
+step_mot_pins = [7,11,13,15]
+
+halfstep_seq = [
+        [1,0,0,0],
+        [1,1,0,0],
+        [0,1,0,0],
+        [0,1,1,0],
+        [0,0,1,0],
+        [0,0,1,1],
+        [0,0,0,1],
+        [1,0,0,1]
+    ]
+
+
 #setup GPIO
-#GPIO.setmode(GPIO.BOARD)
-GPIO.setmode(GPIO.BCM)
+GPIO.setmode(GPIO.BOARD)
+#GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 #GPIO.setup(forwardPin, GPIO.OUT)
 #GPIO.setup(backPin, GPIO.OUT)
@@ -33,14 +39,18 @@ GPIO.setwarnings(False)
 #GPIO.setup(leftPin, GPIO.OUT)
 #GPIO.setup(motorPin, GPIO.OUT)
 
-GPIO.setup(mtrAfor, GPIO.OUT)
-GPIO.setup(mtrAbac, GPIO.OUT)
+for pin in step_mot_pins:
+        GPIO.setup(pin, GPIO.OUT)
+        GPIO.output(pin, 0)
 
-GPIO.setup(mtrBfor, GPIO.OUT)
-GPIO.setup(mtrBbac, GPIO.OUT)
+#GPIO.setup(mtrAfor, GPIO.OUT)
+#GPIO.setup(mtrAbac, GPIO.OUT)
 
-GPIO.setup(triggerPin, GPIO.OUT)
-GPIO.setup(echoPin, GPIO.IN)
+#GPIO.setup(mtrBfor, GPIO.OUT)
+#GPIO.setup(mtrBbac, GPIO.OUT)
+
+#GPIO.setup(triggerPin, GPIO.OUT)
+#GPIO.setup(echoPin, GPIO.IN)
 
 
 #buzzer - disabled currently
@@ -57,22 +67,22 @@ firebase.put('/', 'online' , 'Yes') #Turn on website
 def editLight(r):
     if (r == 'up'):
         print ("MOVING FORWARD")
-        GPIO.output(forwardPin, GPIO.HIGH)
+        #GPIO.output(forwardPin, GPIO.HIGH)
     elif (r == 'down'):
         print ("MOVING BACKWARD")
-        GPIO.output(backPin, GPIO.HIGH)
+        #GPIO.output(backPin, GPIO.HIGH)
     elif (r == 'right'):
         print ("TURNING RIGHT")
-        GPIO.output(rightPin, GPIO.HIGH)
+        #GPIO.output(rightPin, GPIO.HIGH)
     elif (r == 'left'):
         print ("TURNING LEFT")
-        GPIO.output(leftPin, GPIO.HIGH)
+        #GPIO.output(leftPin, GPIO.HIGH)
     elif (r == 'horn'):
         print ("SERVO TEST")
         servo.ChangeDutyCycle(2.5)
         time.sleep(1)
         servo.ChangeDutyCycle(12.5)
-        GPIO.output(40, GPIO.LOW)
+        #GPIO.output(40, GPIO.LOW)
     else:
         print ("FULL STOP")
 
@@ -81,53 +91,53 @@ moveTime = 0.8
 def motorChange(r):
     if (r == "up"):
         print("Forwards!")
-        GPIO.output(mtrAbac, 0) #no movement backwards
-        GPIO.output(mtrAfor, 1) #forward movement!
+        #GPIO.output(mtrAbac, 0) #no movement backwards
+        #GPIO.output(mtrAfor, 1) #forward movement!
         
-        GPIO.output(mtrBbac, 0) #no movement backwards
-        GPIO.output(mtrBfor, 1) #forward movement!
+        #GPIO.output(mtrBbac, 0) #no movement backwards
+        #GPIO.output(mtrBfor, 1) #forward movement!
 
         time.sleep(moveTime)
         motorStop()
     elif (r == "down"):
         print("Backwards!")
-        GPIO.output(mtrAbac, 1) #no movement backwards
-        GPIO.output(mtrAfor, 0) #forward movement!
+        #GPIO.output(mtrAbac, 1) #no movement backwards
+        #GPIO.output(mtrAfor, 0) #forward movement!
         
-        GPIO.output(mtrBbac, 1) #no movement backwards
-        GPIO.output(mtrBfor, 0) #forward movement!
+        #GPIO.output(mtrBbac, 1) #no movement backwards
+        #GPIO.output(mtrBfor, 0) #forward movement!
 
         time.sleep(moveTime)
         motorStop()
     elif (r == "left"):
         print("Left turn")
-        GPIO.output(mtrAbac, 0) #no movement backwards
-        GPIO.output(mtrAfor, 1) #forward movement!
+       # GPIO.output(mtrAbac, 0) #no movement backwards
+        #GPIO.output(mtrAfor, 1) #forward movement!
         
-        GPIO.output(mtrBbac, 1) #no movement backwards
-        GPIO.output(mtrBfor, 0) #forward movement!
+       # GPIO.output(mtrBbac, 1) #no movement backwards
+       # GPIO.output(mtrBfor, 0) #forward movement!
 
         time.sleep(turnTime)
         motorStop()
     elif (r == "right"):
         print("Right turn!")
-        GPIO.output(mtrAbac, 1) #no movement backwards
-        GPIO.output(mtrAfor, 0) #forward movement!
+       # GPIO.output(mtrAbac, 1) #no movement backwards
+       # GPIO.output(mtrAfor, 0) #forward movement!
         
-        GPIO.output(mtrBbac, 0) #no movement backwards
-        GPIO.output(mtrBfor, 1) #forward movement!
+       # GPIO.output(mtrBbac, 0) #no movement backwards
+      #  GPIO.output(mtrBfor, 1) #forward movement!
 
         time.sleep(turnTime)
         motorStop()
 
 #Stop all motor movement!
 def motorStop():
-        GPIO.output(mtrAbac, 0) 
-        GPIO.output(mtrAfor, 0) 
-        GPIO.output(mtrBbac, 0) 
-        GPIO.output(mtrBfor, 0) 
+    print ("allstop")
+       # GPIO.output(mtrAbac, 0) 
+      #  GPIO.output(mtrAfor, 0) 
+      #  GPIO.output(mtrBbac, 0) 
+      #  GPIO.output(mtrBfor, 0) 
 
-#TESTING BUFFERING
 def movementBuffer():
     
     movementList = firebase.get('/movement', None)
@@ -146,8 +156,26 @@ def movementBuffer():
 #TO DO:
 # Make this more efficient!!!
 
-def 
-
+def step_mot_control():
+    
+    rotation_deg = int(firebase.get('/rot', None))
+    
+    print  (rotation_deg)
+    
+    
+    
+    if (rotation_deg > 0):
+        rotation_ticks = int(rotation_deg*1.6)
+        
+        print (rotation_ticks)
+        
+        for i in range (rotation_ticks):
+            for halfstep in range(8):
+                for pin in range(4):
+                    GPIO.output(step_mot_pins[pin], halfstep_seq[halfstep][pin])
+                time.sleep(0.001)
+        
+    firebase.put('/', 'rot' , '0')
 
 try:
     while True:
@@ -169,7 +197,7 @@ try:
 
         #RESET ALL HERE
         motorStop()
-        
+        step_mot_control()
 
         #GPIO.output(forwardPin, GPIO.LOW)
         #GPIO.output(backPin, GPIO.LOW)
@@ -190,10 +218,3 @@ except KeyboardInterrupt:
     GPIO.cleanup()
     print("Shutting down")
     firebase.put('/', 'online' , 'No')
-
-    
-
-
-
-
-    
